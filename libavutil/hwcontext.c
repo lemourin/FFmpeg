@@ -59,6 +59,9 @@ static const HWContextType * const hw_table[] = {
 #if CONFIG_MEDIACODEC
     &ff_hwcontext_type_mediacodec,
 #endif
+#if CONFIG_MF
+    &ff_hwcontext_type_mf,
+#endif
     NULL,
 };
 

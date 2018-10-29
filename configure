@@ -300,6 +300,7 @@ External library support:
   --enable-mbedtls         enable mbedTLS, needed for https support
                            if openssl, gnutls or libtls is not used [no]
   --enable-mediacodec      enable Android MediaCodec support [no]
+  --enable-mf              enable decoding via MediaFoundation [no]
   --enable-libmysofa       enable libmysofa, needed for sofalizer filter [no]
   --enable-openal          enable OpenAL 1.1 capture support [no]
   --enable-opencl          enable OpenCL processing [no]
@@ -1758,6 +1759,7 @@ EXTERNAL_LIBRARY_LIST="
     libzvbi
     lv2
     mediacodec
+    mf
     openal
     opengl
     vapoursynth
@@ -2316,6 +2318,7 @@ CONFIG_EXTRA="
     lpc
     lzf
     me_cmp
+    mf
     mpeg_er
     mpegaudio
     mpegaudiodsp
@@ -2803,6 +2806,8 @@ zlib_decoder_deps="zlib"
 zlib_encoder_deps="zlib"
 zmbv_decoder_deps="zlib"
 zmbv_encoder_deps="zlib"
+mf_deps="mftransform_h"
+mf_extralibs="-ldxva2 -levr -lmf -lmfplat -lmfuuid -lole32 -lstrmiids -luuid -loleaut32 -lshlwapi"
 
 # hardware accelerators
 crystalhd_deps="libcrystalhd_libcrystalhd_if_h"
@@ -2834,6 +2839,7 @@ h264_vdpau_hwaccel_deps="vdpau"
 h264_vdpau_hwaccel_select="h264_decoder"
 h264_videotoolbox_hwaccel_deps="videotoolbox"
 h264_videotoolbox_hwaccel_select="h264_decoder"
+h264_mf_hwaccel_deps="mf"
 hevc_d3d11va_hwaccel_deps="d3d11va DXVA_PicParams_HEVC"
 hevc_d3d11va_hwaccel_select="hevc_decoder"
 hevc_d3d11va2_hwaccel_deps="d3d11va DXVA_PicParams_HEVC"
@@ -2848,10 +2854,12 @@ hevc_vdpau_hwaccel_deps="vdpau VdpPictureInfoHEVC"
 hevc_vdpau_hwaccel_select="hevc_decoder"
 hevc_videotoolbox_hwaccel_deps="videotoolbox"
 hevc_videotoolbox_hwaccel_select="hevc_decoder"
+hevc_mf_hwaccel_deps="mf"
 mjpeg_nvdec_hwaccel_deps="nvdec"
 mjpeg_nvdec_hwaccel_select="mjpeg_decoder"
 mjpeg_vaapi_hwaccel_deps="vaapi"
 mjpeg_vaapi_hwaccel_select="mjpeg_decoder"
+mjpeg_mf_hwaccel_deps="mf"
 mpeg_xvmc_hwaccel_deps="xvmc"
 mpeg_xvmc_hwaccel_select="mpeg2video_decoder"
 mpeg1_nvdec_hwaccel_deps="nvdec"
@@ -2876,6 +2884,7 @@ mpeg2_vdpau_hwaccel_deps="vdpau"
 mpeg2_vdpau_hwaccel_select="mpeg2video_decoder"
 mpeg2_videotoolbox_hwaccel_deps="videotoolbox"
 mpeg2_videotoolbox_hwaccel_select="mpeg2video_decoder"
+mpeg2_mf_hwaccel_deps="mf"
 mpeg2_xvmc_hwaccel_deps="xvmc"
 mpeg2_xvmc_hwaccel_select="mpeg2video_decoder"
 mpeg4_nvdec_hwaccel_deps="nvdec"
@@ -2886,6 +2895,10 @@ mpeg4_vdpau_hwaccel_deps="vdpau"
 mpeg4_vdpau_hwaccel_select="mpeg4_decoder"
 mpeg4_videotoolbox_hwaccel_deps="videotoolbox"
 mpeg4_videotoolbox_hwaccel_select="mpeg4_decoder"
+mpeg4_mf_hwaccel_deps="mf"
+msmpeg4v1_mf_hwaccel_deps="mf"
+msmpeg4v2_mf_hwaccel_deps="mf"
+msmpeg4v3_mf_hwaccel_deps="mf"
 vc1_d3d11va_hwaccel_deps="d3d11va"
 vc1_d3d11va_hwaccel_select="vc1_decoder"
 vc1_d3d11va2_hwaccel_deps="d3d11va"
@@ -2898,6 +2911,7 @@ vc1_vaapi_hwaccel_deps="vaapi"
 vc1_vaapi_hwaccel_select="vc1_decoder"
 vc1_vdpau_hwaccel_deps="vdpau"
 vc1_vdpau_hwaccel_select="vc1_decoder"
+vc1_mf_hwaccel_deps="mf"
 vp8_nvdec_hwaccel_deps="nvdec"
 vp8_nvdec_hwaccel_select="vp8_decoder"
 vp8_vaapi_hwaccel_deps="vaapi"
@@ -2912,12 +2926,15 @@ vp9_nvdec_hwaccel_deps="nvdec"
 vp9_nvdec_hwaccel_select="vp9_decoder"
 vp9_vaapi_hwaccel_deps="vaapi VADecPictureParameterBufferVP9_bit_depth"
 vp9_vaapi_hwaccel_select="vp9_decoder"
+wmv1_mf_hwaccel_deps="mf"
+wmv2_mf_hwaccel_deps="mf"
 wmv3_d3d11va_hwaccel_select="vc1_d3d11va_hwaccel"
 wmv3_d3d11va2_hwaccel_select="vc1_d3d11va2_hwaccel"
 wmv3_dxva2_hwaccel_select="vc1_dxva2_hwaccel"
 wmv3_nvdec_hwaccel_select="vc1_nvdec_hwaccel"
 wmv3_vaapi_hwaccel_select="vc1_vaapi_hwaccel"
 wmv3_vdpau_hwaccel_select="vc1_vdpau_hwaccel"
+wmv3_mf_hwaccel_deps="mf"
 
 # hardware-accelerated codecs
 omx_deps="libdl pthreads"
@@ -3151,6 +3168,34 @@ vapoursynth_demuxer_deps="vapoursynth"
 videotoolbox_suggest="coreservices"
 videotoolbox_deps="corefoundation coremedia corevideo"
 videotoolbox_encoder_deps="videotoolbox VTCompressionSessionPrepareToEncodeFrames"
+aac_mf_decoder_deps="mf"
+aac_mf_encoder_deps="mf"
+ac3_mf_decoder_deps="mf"
+ac3_mf_encoder_deps="mf"
+eac3_mf_decoder_deps="mf"
+h264_mf_decoder_deps="mf"
+h264_mf_encoder_deps="mf"
+hevc_mf_decoder_deps="mf"
+hevc_mf_encoder_deps="mf"
+mjpeg_mf_decoder_deps="mf"
+mp1_mf_decoder_deps="mf"
+mp2_mf_decoder_deps="mf"
+mp3_mf_decoder_deps="mf"
+mp3_mf_encoder_deps="mf"
+mpeg2_mf_decoder_deps="mf"
+mpeg4_mf_decoder_deps="mf"
+msmpeg4v1_mf_decoder_deps="mf"
+msmpeg4v2_mf_decoder_deps="mf"
+msmpeg4v3_mf_decoder_deps="mf"
+vc1_mf_decoder_deps="mf"
+wmav1_mf_decoder_deps="mf"
+wmav2_mf_decoder_deps="mf"
+wmalossless_mf_decoder_deps="mf"
+wmapro_mf_decoder_deps="mf"
+wmavoice_mf_decoder_deps="mf"
+wmv1_mf_decoder_deps="mf"
+wmv2_mf_decoder_deps="mf"
+wmv3_mf_decoder_deps="mf"
 
 # demuxers / muxers
 ac3_demuxer_select="ac3_parser"
@@ -3527,7 +3572,7 @@ avformat_deps="avcodec avutil"
 avformat_suggest="libm network zlib"
 avresample_deps="avutil"
 avresample_suggest="libm"
-avutil_suggest="clock_gettime ffnvcodec libm libdrm libmfx opencl user32 vaapi videotoolbox corefoundation corevideo coremedia bcrypt"
+avutil_suggest="clock_gettime ffnvcodec libm libdrm libmfx opencl user32 vaapi videotoolbox corefoundation corevideo coremedia bcrypt mf"
 postproc_deps="avutil gpl"
 postproc_suggest="libm"
 swresample_deps="avutil"
@@ -5905,6 +5950,7 @@ check_headers io.h
 check_headers linux/perf_event.h
 check_headers libcrystalhd/libcrystalhd_if.h
 check_headers malloc.h
+check_headers mftransform.h
 check_headers net/udplite.h
 check_headers poll.h
 check_headers sys/param.h

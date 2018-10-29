@@ -340,6 +340,8 @@ enum AVPixelFormat {
     AV_PIX_FMT_GRAYF32BE,  ///< IEEE-754 single precision Y, 32bpp, big-endian
     AV_PIX_FMT_GRAYF32LE,  ///< IEEE-754 single precision Y, 32bpp, little-endian
 
+    AV_PIX_FMT_MF,          ///< hardware decoding though MediaFoundation (IMFSample)
+
     AV_PIX_FMT_NB         ///< number of pixel formats, DO NOT USE THIS if you want to link with shared libav* because the number of formats might differ between versions
 };
 
