@@ -736,6 +736,7 @@ extern AVCodec ff_h264_omx_encoder;
 extern AVCodec ff_h264_qsv_encoder;
 extern AVCodec ff_h264_v4l2m2m_encoder;
 extern AVCodec ff_h264_vaapi_encoder;
+extern AVCodec ff_h264_videotoolbox_decoder;
 extern AVCodec ff_h264_videotoolbox_encoder;
 #if FF_API_NVENC_OLD_NAME
 extern AVCodec ff_nvenc_encoder;
