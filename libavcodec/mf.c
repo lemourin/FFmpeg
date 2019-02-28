@@ -167,10 +167,12 @@ static IMFSample *mf_avpacket_to_sample(AVCodecContext *avctx, const AVPacket *a
 
     if (c->bsfc) {
         AVPacket tmp2 = {0};
-        if ((ret = av_bsf_send_packet(c->bsfc, &tmp)) < 0)
-            goto done;
-        if ((ret = av_bsf_receive_packet(c->bsfc, &tmp)) < 0)
-            goto done;
+        if ((ret = av_bsf_send_packet(c->bsfc, &tmp)) < 0) {
+            av_log(avctx, AV_LOG_WARNING, "couldn't send packet to bsf (%s)\n", av_err2str(ret));
+        }
+        if ((ret = av_bsf_receive_packet(c->bsfc, &tmp)) < 0) {
+            av_log(avctx, AV_LOG_WARNING, "couldn't receive packet from bsf (%s)\n", av_err2str(ret));
+        }
         // We don't support any 1:m BSF filtering - but at least don't get stuck.
         while ((ret = av_bsf_receive_packet(c->bsfc, &tmp2)) >= 0)
             av_log(avctx, AV_LOG_ERROR, "Discarding unsupported sub-packet.\n");
