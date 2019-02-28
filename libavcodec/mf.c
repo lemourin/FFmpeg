@@ -861,6 +861,8 @@ static int mf_receive_frame(AVCodecContext *avctx, AVFrame *frame)
     IMFSample *sample;
     int ret;
     AVPacket packet;
+    MFContext *c = avctx->priv_data;
+    int hr;
 
     while (1) {
         ret = mf_receive_sample(avctx, &sample);
@@ -868,9 +870,19 @@ static int mf_receive_frame(AVCodecContext *avctx, AVFrame *frame)
             ret = mf_sample_to_avframe(avctx, sample, frame);
             IMFSample_Release(sample);
             return ret;
-        } else if (ret == AVERROR(EAGAIN)) {
+        } else if (ret == AVERROR(EAGAIN) && !c->draining) {
             ret = ff_decode_get_packet(avctx, &packet);
             if (ret < 0) {
+                if (ret == AVERROR_EOF) {
+                    hr = IMFTransform_ProcessMessage(c->mft, MFT_MESSAGE_NOTIFY_END_OF_STREAM, 0);
+                    if (FAILED(hr))
+                        av_log(avctx, AV_LOG_ERROR, "could not end streaming (%s)\n", ff_hr_str(hr));
+                    hr = IMFTransform_ProcessMessage(c->mft, MFT_MESSAGE_COMMAND_DRAIN, 0);
+                    if (FAILED(hr))
+                        av_log(avctx, AV_LOG_ERROR, "failed draining: %s\n", ff_hr_str(hr));
+                    c->draining = 1;
+                    continue;
+                }
                 return ret;
             }
             ret = mf_send_packet(avctx, &packet);
